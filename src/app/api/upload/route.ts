@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser, getSupabaseServerClient } from "@/lib/supabase/server";
 
 const uploadInput = z.object({
   complaintId: z.string().uuid(),
@@ -18,7 +18,7 @@ const extensions: Record<string, string> = {
 export async function POST(request: Request) {
   const supabase = getSupabaseServerClient();
   if (!supabase) return NextResponse.json({ error: "Supabase is not configured." }, { status: 503 });
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getAuthenticatedUser(supabase);
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   const parsed = uploadInput.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Use a supported image or PDF up to 10 MB." }, { status: 400 });

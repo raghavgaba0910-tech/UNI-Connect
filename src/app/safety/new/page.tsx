@@ -14,13 +14,21 @@ export default function NewComplaintPage() {
     event.preventDefault();
     setBusy(true);
     setError("");
-    const values = Object.fromEntries(new FormData(event.currentTarget).entries());
-    if (!values.incidentDate) delete values.incidentDate;
-    const response = await fetch("/api/complaints", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(values) });
-    const result = await response.json();
-    setBusy(false);
-    if (!response.ok) return setError(response.status === 401 ? "Sign in with your student account before submitting." : result.error ?? "The concern could not be submitted.");
-    setReferenceCode(result.referenceCode);
+    try {
+      const values = Object.fromEntries(new FormData(event.currentTarget).entries());
+      if (!values.incidentDate) delete values.incidentDate;
+      const response = await fetch("/api/complaints", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(values) });
+      const result = await response.json();
+      if (!response.ok) {
+        setError(response.status === 401 ? "Sign in with your student account before submitting." : result.error ?? "The concern could not be submitted.");
+        return;
+      }
+      setReferenceCode(result.referenceCode);
+    } catch {
+      setError("We couldn't reach the server. Check your connection and try again.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return <AppShell><div className="page-content module-page"><Link href="/safety" className="text-link"><ArrowLeft size={13} /> Safety & care</Link><div className="eyebrow" style={{ marginTop: 24 }}><ShieldCheck size={13} /> PRIVATE SUBMISSION</div><h1>Share a campus concern</h1><p className="welcome-copy" style={{ maxWidth: 570, lineHeight: 1.8 }}>Your name is not shown with an anonymous concern. Sign-in is still required so authorized staff can follow up safely. If anyone is in immediate danger, contact emergency services or campus security directly.</p>

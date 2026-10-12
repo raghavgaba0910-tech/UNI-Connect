@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser, getSupabaseServerClient } from "@/lib/supabase/server";
 
 const complaintInput = z.object({
   category: z.enum(["safety", "harassment", "facilities", "academic", "other"]),
@@ -13,7 +13,7 @@ const complaintInput = z.object({
 export async function GET() {
   const supabase = getSupabaseServerClient();
   if (!supabase) return NextResponse.json({ error: "Supabase is not configured." }, { status: 503 });
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getAuthenticatedUser(supabase);
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   const { data, error } = await supabase.from("complaints").select("id,reference_code,category,title,status,created_at").order("created_at", { ascending: false });
   if (error) return NextResponse.json({ error: "Unable to load complaint status." }, { status: 400 });
@@ -23,7 +23,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const supabase = getSupabaseServerClient();
   if (!supabase) return NextResponse.json({ error: "Supabase is not configured." }, { status: 503 });
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getAuthenticatedUser(supabase);
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   const parsed = complaintInput.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Check the complaint fields and try again.", details: parsed.error.flatten().fieldErrors }, { status: 400 });

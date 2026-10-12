@@ -24,19 +24,22 @@ export default function LoginPage() {
     }
 
     setBusy(true);
-    const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: { shouldCreateUser: mode === "register" },
-    });
-    setBusy(false);
-
-    if (error) {
-      setMessage(error.message);
-      return;
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: { shouldCreateUser: mode === "register" },
+      });
+      if (error) {
+        setMessage(error.message);
+        return;
+      }
+      setSent(true);
+      setMessage("Check your inbox for a one-time sign-in code.");
+    } catch {
+      setMessage("We couldn't reach the sign-in service. Check your connection and try again.");
+    } finally {
+      setBusy(false);
     }
-
-    setSent(true);
-    setMessage("Check your inbox for a one-time sign-in code.");
   }
 
   async function verifyCode(event: FormEvent<HTMLFormElement>) {
@@ -50,19 +53,22 @@ export default function LoginPage() {
     }
 
     setBusy(true);
-    const { error } = await supabase.auth.verifyOtp({
-      email: email.trim(),
-      token: token.trim(),
-      type: "email",
-    });
-    setBusy(false);
-
-    if (error) {
-      setMessage(error.message);
-      return;
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email: email.trim(),
+        token: token.trim(),
+        type: "email",
+      });
+      if (error) {
+        setMessage(error.message);
+        return;
+      }
+      window.location.assign("/");
+    } catch {
+      setMessage("We couldn't reach the sign-in service. Check your connection and try again.");
+    } finally {
+      setBusy(false);
     }
-
-    window.location.assign("/");
   }
 
   return (
@@ -107,7 +113,7 @@ export default function LoginPage() {
               color: "#f6f7f0",
             }}
           >
-            Campus feels better when we're connected.
+            Campus feels better when we&apos;re connected.
           </h1>
           <p style={{ maxWidth: 370, color: "#aeb3a7", fontSize: 13, lineHeight: 1.8 }}>
             Find your people, share what you know, and get support when it matters.

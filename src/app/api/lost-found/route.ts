@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser, getSupabaseServerClient } from "@/lib/supabase/server";
 
 const postInput = z.object({
   type: z.enum(["lost", "found"]),
@@ -14,7 +14,7 @@ const postInput = z.object({
 export async function GET() {
   const supabase = getSupabaseServerClient();
   if (!supabase) return NextResponse.json({ error: "Supabase is not configured." }, { status: 503 });
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getAuthenticatedUser(supabase);
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   const { data, error } = await supabase.from("lost_found_posts").select("id,type,item_name,category,description,location,incident_date,status,is_claimed,created_at").eq("status", "active").order("created_at", { ascending: false });
   if (error) return NextResponse.json({ error: "Unable to load lost and found posts." }, { status: 400 });
@@ -24,7 +24,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const supabase = getSupabaseServerClient();
   if (!supabase) return NextResponse.json({ error: "Supabase is not configured." }, { status: 503 });
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getAuthenticatedUser(supabase);
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   const parsed = postInput.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Check the item details and try again.", details: parsed.error.flatten().fieldErrors }, { status: 400 });

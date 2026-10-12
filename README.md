@@ -10,7 +10,7 @@ A student campus platform for COER University, built with Next.js 14, TypeScript
 4. Copy `.env.example` to `.env.local` with `Copy-Item .env.example .env.local` in PowerShell.
 5. Run `npm run dev` and open http://localhost:3000.
 
-The dashboard and module pages render sample data before backend credentials are configured. This workspace did not have Node.js available while it was scaffolded, so install, lint, typecheck, and production build still need to be run locally.
+The dashboard and module pages render sample data before backend credentials are configured. Run `npm run lint`, `npm run typecheck`, and `npm run build` after changes and before deployment, and validate live Supabase flows with separate student and admin accounts.
 
 ## Supabase setup
 
@@ -21,6 +21,8 @@ The dashboard and module pages render sample data before backend credentials are
 5. Confirm the official COER student email domain with the university before restricting registration. The supplied brief lists both `@coeruniversity.ac.in` and `@coer.ac.in`; neither is enforced by this starter.
 6. Provision the first admin only with a trusted server-side Supabase Admin API process that sets `app_metadata.role` to `admin`. Never use client-editable `user_metadata` for roles. No admin bootstrap utility is included yet.
 7. Test every RLS policy using separate student and admin accounts before entering real campus data.
+
+Authenticated API and middleware requests verify JWT claims with Supabase `getClaims()` before querying the database. Projects using asymmetric JWT signing keys can verify claims locally after the signing keys are cached, avoiding an Auth-server lookup on each request; legacy symmetric signing keys still require remote verification.
 
 ## Included routes
 

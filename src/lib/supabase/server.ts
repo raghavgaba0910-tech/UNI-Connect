@@ -1,4 +1,4 @@
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 export function getSupabaseServerClient() {
@@ -9,7 +9,7 @@ export function getSupabaseServerClient() {
   return createServerClient(url, anonKey, {
     cookies: {
       getAll: () => cookieStore.getAll(),
-      setAll: (cookiesToSet) => {
+      setAll: (cookiesToSet: { name: string; value: string; options: CookieOptions }[]) => {
         try {
           cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
         } catch {
@@ -18,4 +18,26 @@ export function getSupabaseServerClient() {
       },
     },
   });
+}
+
+type ServerSupabaseClient = NonNullable<ReturnType<typeof getSupabaseServerClient>>;
+
+export async function getAuthenticatedUser(supabase: ServerSupabaseClient) {
+  const { data, error } = await supabase.auth.getClaims();
+  if (error) {
+    if (error.status === 400 || error.status === 401) return null;
+    throw error;
+  }
+
+  const claims = data?.claims;
+  if (typeof claims?.sub !== "string") return null;
+
+  const metadata = claims.app_metadata;
+  const role =
+    metadata && typeof metadata === "object" && !Array.isArray(metadata) && "role" in metadata &&
+    typeof metadata.role === "string"
+      ? metadata.role
+      : null;
+
+  return { id: claims.sub, role };
 }
