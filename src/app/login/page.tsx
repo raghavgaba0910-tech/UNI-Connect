@@ -72,15 +72,9 @@ export default function LoginPage() {
   }
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        display: "grid",
-        gridTemplateColumns: "minmax(0, 1fr) minmax(320px, 470px)",
-        background: "#f4f5ef",
-      }}
-    >
+    <main className="login-layout">
       <section
+        className="login-story"
         style={{
           position: "relative",
           overflow: "hidden",
@@ -162,7 +156,7 @@ export default function LoginPage() {
         />
       </section>
 
-      <section style={{ display: "grid", placeItems: "center", padding: 26 }}>
+      <section className="login-form-area" style={{ display: "grid", placeItems: "center", padding: 26 }}>
         <div style={{ width: "min(100%, 340px)" }}>
           <Link href="/" className="text-link">
             <ArrowLeft size={13} /> Back to campus

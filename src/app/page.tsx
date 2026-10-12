@@ -16,10 +16,24 @@ const notices = [
 ];
 
 export default function HomePage() {
+  const today = new Date();
+  const currentDate = new Intl.DateTimeFormat("en", {
+    timeZone: "Asia/Kolkata",
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+  }).format(today);
+  const dateTime = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(today);
+
   return <AppShell><div className="page-content">
     <section className="welcome-row">
-      <div><div className="eyebrow"><span className="live-dot" /> YOUR CAMPUS, IN SYNC</div><h1>Good morning, Aanya</h1><p className="welcome-copy">A little more connected. A little more at home.</p></div>
-      <div className="date-pill">MONDAY · 06 OCTOBER</div>
+      <div><div className="eyebrow"><span className="live-dot" /> YOUR CAMPUS, IN SYNC</div><h1>Good to see you</h1><p className="welcome-copy">A little more connected. A little more at home.</p></div>
+      <time className="date-pill" dateTime={dateTime}>{currentDate}</time>
     </section>
 
     <section className="hero-panel" aria-labelledby="hero-title">

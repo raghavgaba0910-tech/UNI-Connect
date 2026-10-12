@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { motion, useReducedMotion } from "framer-motion";
-import { Bell, BookOpen, BriefcaseBusiness, Compass, HeartHandshake, Home, LogIn, Menu, Megaphone, MoonStar, PackageSearch, ShieldAlert, ShieldCheck, Sun, UserRound, UsersRound } from "lucide-react";
+import { Bell, BookOpen, BriefcaseBusiness, Compass, HeartHandshake, Home, LogIn, Menu, Megaphone, MoonStar, PackageSearch, ShieldAlert, ShieldCheck, Sun, UserRound, UsersRound, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -23,8 +24,28 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const reduceMotion = useReducedMotion();
+  const [menuOpen, setMenuOpen] = useState(false);
   const activeHref = pathname === "/" ? "/" : `/${pathname.split("/")[1]}`;
-  const mobileNavigation = navigation.slice(0, 5);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [menuOpen]);
 
   return (
     <div className="app-shell">
@@ -53,7 +74,21 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
       <main className="main-area">
         <header className="topbar">
-          <div className="breadcrumb"><span className="mobile-menu icon-button" aria-hidden="true"><Menu size={16} /></span><BookOpen size={13} style={{ verticalAlign: "-2px", marginRight: 7 }} />COER UNIVERSITY <span style={{ margin: "0 8px", color: "#b5baae" }}>/</span><strong>{activeHref === "/" ? "CAMPUS HOME" : activeHref.slice(1).replaceAll("-", " ").toUpperCase()}</strong></div>
+          <div className="breadcrumb">
+            <button
+              className="mobile-menu icon-button"
+              type="button"
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-label={menuOpen ? "Close campus navigation" : "Open campus navigation"}
+              aria-expanded={menuOpen}
+              aria-controls="mobile-navigation"
+            >
+              {menuOpen ? <X size={16} /> : <Menu size={16} />}
+            </button>
+            <BookOpen size={13} style={{ verticalAlign: "-2px", marginRight: 7 }} />COER UNIVERSITY
+            <span style={{ margin: "0 8px", color: "#b5baae" }}>/</span>
+            <strong>{activeHref === "/" ? "CAMPUS HOME" : activeHref.slice(1).replaceAll("-", " ").toUpperCase()}</strong>
+          </div>
           <div className="top-actions">
             <button className="icon-button" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`} aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}>{theme === "dark" ? <Sun size={16} /> : <MoonStar size={16} />}</button>
             <Link className="icon-button" href="/login" title="Sign in" aria-label="Sign in"><LogIn size={16} /></Link>
@@ -62,6 +97,38 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="avatar" aria-label="Guest profile">AS</div>
           </div>
         </header>
+        {menuOpen && (
+          <>
+            <button
+              className="mobile-drawer-backdrop"
+              type="button"
+              onClick={() => setMenuOpen(false)}
+              aria-label="Close campus navigation"
+            />
+            <nav className="mobile-drawer" id="mobile-navigation" aria-label="More campus destinations">
+              <div className="mobile-drawer-head">
+                <span>Explore campus</span>
+                <button className="icon-button" type="button" onClick={() => setMenuOpen(false)} aria-label="Close campus navigation">
+                  <X size={16} />
+                </button>
+              </div>
+              {navigation.slice(5).map(({ label, href, icon: Icon }) => (
+                <Link className="mobile-drawer-link" href={href} key={href}>
+                  <Icon size={17} strokeWidth={1.8} />
+                  <span>{label}</span>
+                </Link>
+              ))}
+              <Link className="mobile-drawer-link" href="/profile">
+                <UserRound size={17} strokeWidth={1.8} />
+                <span>My profile</span>
+              </Link>
+              <Link className="mobile-drawer-link" href="/admin">
+                <ShieldCheck size={17} strokeWidth={1.8} />
+                <span>Admin workspace</span>
+              </Link>
+            </nav>
+          </>
+        )}
         <motion.div key={pathname} initial={reduceMotion ? false : { opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reduceMotion ? 0 : 0.22 }}>
           {children}
         </motion.div>
